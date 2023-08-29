@@ -93,7 +93,7 @@ namespace Sussy_impostor_text_adventure
             Question reacHall = new Question("The reactor hallway connects the upper and lower engines, the reactor and the security room. Where would you like to go?", new string[] { "u", "l", "r", "c" });
             Question navHall = new Question("The navigation hallway connects the oxygen, weapons, navigation and shields. Where would you like to go?", new string[] { "w", "o", "n", "s" });
             Question commsHall = new Question("The comunications hallway connects the shields, comunications and storage room. Where would you like to go?", new string[] { "c", "st", "sh" });
-            Question elecHall = new Question("The elecrtical hall connects the lower engine, electrical and storage rooms. Where would you like to go?", new string[] { "e", "s", "e" });
+            Question elecHall = new Question("The elecrtical hall connects the lower engine, electrical and storage rooms. Where would you like to go?", new string[] { "e", "s", "l" });
             Question weapons = new Question("A seat sits in the middle of the room, on its armrests are control sticks to move the laser outside the ship. You can go to either the cafeteria or the navigation hall from here.", new string[] { "c", "n" });
             Question oxygen = new Question("The oxygen room circulates and filters the oxygen for the entire ship. From here you can go back into the navigation hall.", new string[] { "h" });
             Question nav = new Question("The navigation room controls where the ship is going, you can go back into the hallway from here.", new string[] { "h" });
@@ -108,24 +108,24 @@ namespace Sussy_impostor_text_adventure
             Question reac = new Question("Reactor - the powerhouse of the ce- ship, I meant ship. You can go back into the hallway from here.", new string[] { "h" });
             Question med = new Question("The medbay, where hurt crewmates are housed and nursed back to health. You can go into the hallway from here.", new string[] { "h" });
 
-            cafe.setNewResults(new Question[] {});
-            adminHall.setNewResults(new Question[] {});
-            medHall.setNewResults(new Question[] {});
-            reacHall.setNewResults(new Question[] {});
-            navHall.setNewResults(new Question[] {});
-            commsHall.setNewResults(new Question[] {});
-            elecHall.setNewResults(new Question[] {});
-            weapons.setNewResults(new Question[] {});
+            cafe.setNewResults(new Question[] {weapons, adminHall, medHall});
+            adminHall.setNewResults(new Question[] {cafe, admin, storage}); // add admin function
+            medHall.setNewResults(new Question[] {cafe, med});
+            reacHall.setNewResults(new Question[] {upperE, lowerE, reac, sec});
+            navHall.setNewResults(new Question[] {weapons, oxygen, nav, shields});
+            commsHall.setNewResults(new Question[] {comms, storage, shields});
+            elecHall.setNewResults(new Question[] {elec, storage, lowerE});
+            weapons.setNewResults(new Question[] {cafe, navHall});
             oxygen.setNewResults(new Question[] {navHall});
             nav.setNewResults(new Question[] {navHall});
-            shields.setNewResults(new Question[] {});
+            shields.setNewResults(new Question[] {commsHall, navHall});
             comms.setNewResults(new Question[] {commsHall});
-            storage.setNewResults(new Question[] {});
+            storage.setNewResults(new Question[] {commsHall, adminHall, elecHall});
             admin.setNewResults(new Question[] {adminHall});
             elec.setNewResults(new Question[] {elecHall});
-            lowerE.setNewResults(new Question[] {});
-            upperE.setNewResults(new Question[] {});
-            sec.setNewResults(new Question[] {reacHall});
+            lowerE.setNewResults(new Question[] {elecHall, reacHall});
+            upperE.setNewResults(new Question[] {medHall, reacHall});
+            sec.setNewResults(new Question[] {reacHall}); // add security function
             reac.setNewResults(new Question[] {reacHall});
             med.setNewResults(new Question[] {medHall});
 
