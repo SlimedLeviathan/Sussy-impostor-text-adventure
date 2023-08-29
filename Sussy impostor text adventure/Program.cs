@@ -88,25 +88,25 @@ namespace Sussy_impostor_text_adventure
             // Making all of the rooms a player can be
 
             Question cafe = new Question("The cafeteria, where the crewmates go to eat and meetings are held. Would you like to go to Weapons, the admin hallway or medbay hallway?", new string[] { "w", "a", "m" });
-            Question adminHall = new Question("Would you like to be an impostor or a crewmate?", new string[] { "c", "a", "s" });
-            Question medBayHall = new Question("Would you like to be an impostor or a crewmate?", new string[] { "c", "m", "e" });
-            Question reactorHall = new Question("Would you like to be an impostor or a crewmate?", new string[] { "u", "l", "r", "c" });
-            Question navHall = new Question("Would you like to be an impostor or a crewmate?", new string[] { "w", "o", "n", "s" });
-            Question commsHall = new Question("Would you like to be an impostor or a crewmate?", new string[] { "c", "st", "sh" });
-            Question elecHall = new Question("Would you like to be an impostor or a crewmate?", new string[] { "e", "s", "e" });
-            Question weapons = new Question("Would you like to be an impostor or a crewmate?", new string[] { "c", "n" });
-            Question oxygen = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question nav = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question shields = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question comms = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question storage = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question admin = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question elec = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question lowerE = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question upperE = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question sec = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question reac = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
-            Question med = new Question("Would you like to be an impostor or a crewmate?", new string[] { "i", "c" });
+            Question adminHall = new Question("The admin hall connects the cafeteria, admin room and the storage room, where would you like to go?", new string[] { "c", "a", "s" });
+            Question medBayHall = new Question("The medbay hall connects the medbay, cafeteria and upper engine, where would you like to go?", new string[] { "c", "m", "e" });
+            Question reactorHall = new Question("The reactor hallway connects the upper and lower engines, the reactor and the security room. Where would you like to go?", new string[] { "u", "l", "r", "c" });
+            Question navHall = new Question("The navigation hallway connects the oxygen, weapons, navigation and shields. Where would you like to go?", new string[] { "w", "o", "n", "s" });
+            Question commsHall = new Question("The comunications hallway connects the shields, comunications and storage room. Where would you like to go?", new string[] { "c", "st", "sh" });
+            Question elecHall = new Question("The elecrtical hall connects the lower engine, electrical and storage rooms. Where would you like to go?", new string[] { "e", "s", "e" });
+            Question weapons = new Question("A seat sits in the middle of the room, on its armrests are control sticks to move the laser outside the ship. You can go to either the cafeteria or the navigation hall from here.", new string[] { "c", "n" });
+            Question oxygen = new Question("The oxygen room circulates and filters the oxygen for the entire ship. From here you can go back into the navigation hall.", new string[] { "h" });
+            Question nav = new Question("The navigation room controls where the ship is going, you can go back into the hallway from here.", new string[] { "h" });
+            Question shields = new Question("The shields room protects the ship from outside dangers, you can either go into the communications hallway or the navigation hallway.", new string[] { "c", "n" });
+            Question comms = new Question("You forgot why you came in here... You can go back into the hall.", new string[] { "h" });
+            Question storage = new Question("This room stores important cargo from the ship and connects multiple hallways. You can either go into the electrical hallway, the communications hallway or the admin hallway.", new string[] { "c", "a", "e" });
+            Question admin = new Question("The admin room is where the crewmates unsuccessfully swipe their cards and also shows the number of crewmates in each room. You can look at the table or go back into the hallway.", new string[] { "h", "t" });
+            Question elec = new Question("Electrical... spooky. The only way you can go is back into the hallway.", new string[] { "h" });
+            Question lowerE = new Question("The lower of the two engines, it connects the electrical hallway to the reactor hallway.", new string[] { "e", "r" });
+            Question upperE = new Question("The upper engine, it connects the reactor hallway to the medbay hallway.", new string[] { "m", "r" });
+            Question sec = new Question("Security, where you are able to spy on everybody.... wherever there is a camera. You can look at the cameras or go back into the hallway.", new string[] { "h", "s" });
+            Question reac = new Question("Reactor - the powerhouse of the ce- ship, I meant ship. You can go back into the hallway from here.", new string[] { "h" });
+            Question med = new Question("The medbay, where hurt crewmates are housed and nursed back to health. You can go into the hallway from here.", new string[] { "h" });
 
             // Text adventure where you are either a crewmate or an impostor
             // youll get a summary at the end to show how many people you killed or tasks you completed
@@ -129,7 +129,7 @@ namespace Sussy_impostor_text_adventure
                     try
                     {
                         int crewNum = int.Parse(crews);
-                        assignCrews(crewNum, new Question[] { cafe, elec, weapons, reac, sec, med, comms, shields, admin, nav, oxygen, storage, upperE, lowerE});
+                        assignCrews(crewNum, new Question[] { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE});
                         done = true;
                     }
                     
