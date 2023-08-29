@@ -89,8 +89,8 @@ namespace Sussy_impostor_text_adventure
 
             Question cafe = new Question("The cafeteria, where the crewmates go to eat and meetings are held. Would you like to go to Weapons, the admin hallway or medbay hallway?", new string[] { "w", "a", "m" });
             Question adminHall = new Question("The admin hall connects the cafeteria, admin room and the storage room, where would you like to go?", new string[] { "c", "a", "s" });
-            Question medBayHall = new Question("The medbay hall connects the medbay, cafeteria and upper engine, where would you like to go?", new string[] { "c", "m", "e" });
-            Question reactorHall = new Question("The reactor hallway connects the upper and lower engines, the reactor and the security room. Where would you like to go?", new string[] { "u", "l", "r", "c" });
+            Question medHall = new Question("The medbay hall connects the medbay, cafeteria and upper engine, where would you like to go?", new string[] { "c", "m", "e" });
+            Question reacHall = new Question("The reactor hallway connects the upper and lower engines, the reactor and the security room. Where would you like to go?", new string[] { "u", "l", "r", "c" });
             Question navHall = new Question("The navigation hallway connects the oxygen, weapons, navigation and shields. Where would you like to go?", new string[] { "w", "o", "n", "s" });
             Question commsHall = new Question("The comunications hallway connects the shields, comunications and storage room. Where would you like to go?", new string[] { "c", "st", "sh" });
             Question elecHall = new Question("The elecrtical hall connects the lower engine, electrical and storage rooms. Where would you like to go?", new string[] { "e", "s", "e" });
@@ -107,6 +107,27 @@ namespace Sussy_impostor_text_adventure
             Question sec = new Question("Security, where you are able to spy on everybody.... wherever there is a camera. You can look at the cameras or go back into the hallway.", new string[] { "h", "s" });
             Question reac = new Question("Reactor - the powerhouse of the ce- ship, I meant ship. You can go back into the hallway from here.", new string[] { "h" });
             Question med = new Question("The medbay, where hurt crewmates are housed and nursed back to health. You can go into the hallway from here.", new string[] { "h" });
+
+            cafe.setNewResults(new Question[] {});
+            adminHall.setNewResults(new Question[] {});
+            medHall.setNewResults(new Question[] {});
+            reacHall.setNewResults(new Question[] {});
+            navHall.setNewResults(new Question[] {});
+            commsHall.setNewResults(new Question[] {});
+            elecHall.setNewResults(new Question[] {});
+            weapons.setNewResults(new Question[] {});
+            oxygen.setNewResults(new Question[] {navHall});
+            nav.setNewResults(new Question[] {navHall});
+            shields.setNewResults(new Question[] {});
+            comms.setNewResults(new Question[] {commsHall});
+            storage.setNewResults(new Question[] {});
+            admin.setNewResults(new Question[] {adminHall});
+            elec.setNewResults(new Question[] {elecHall});
+            lowerE.setNewResults(new Question[] {});
+            upperE.setNewResults(new Question[] {});
+            sec.setNewResults(new Question[] {reacHall});
+            reac.setNewResults(new Question[] {reacHall});
+            med.setNewResults(new Question[] {medHall});
 
             // Text adventure where you are either a crewmate or an impostor
             // youll get a summary at the end to show how many people you killed or tasks you completed
@@ -155,7 +176,7 @@ namespace Sussy_impostor_text_adventure
                     try
                     {
                         int taskNum = int.Parse(tasks);
-                        assignTasks(taskNum, new Question[] {cafe, reactorHall, adminHall, elec, navHall, storage, reac, admin, nav, reac, med, weapons, upperE, lowerE}, upperE, lowerE);
+                        assignTasks(taskNum, new Question[] {cafe, reacHall, adminHall, elec, navHall, storage, reac, admin, nav, reac, med, weapons, upperE, lowerE}, upperE, lowerE);
                         done = true;
                     }
 
