@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Sussy_impostor_text_adventure
@@ -8,7 +9,7 @@ namespace Sussy_impostor_text_adventure
     {
         // This class handels all of the questions in the game, it makes sure that the user won't input any wrong inputs and sends them to and from rooms
         // Will handle any interactions with impostors and crewmates
-        public static int questionLoop(string question, string[] answers)
+        public static int questionLoop(string question, string extras, string[] answers)
         {
             bool done = false;
             int endNum = -1;
@@ -29,7 +30,7 @@ namespace Sussy_impostor_text_adventure
 
             while (!done)
             {
-                Console.Write(question + options + " : ");
+                print(question + extras + options + " : ", 10);
 
                 string input = Console.ReadLine().ToLower();
 
@@ -44,9 +45,14 @@ namespace Sussy_impostor_text_adventure
                     }
                 }
 
+                if (input == "w")
+                {
+                    done = true;
+                }
+
                 if (!done)
                 {
-                    Console.WriteLine("Your input was not able to be detected, please try again.");
+                    printLine("Your input was not able to be detected, please try again.", 1);
                 }
             }
             return endNum;
@@ -54,11 +60,11 @@ namespace Sussy_impostor_text_adventure
         public class Question
         {
             private string question;
-            public bool task = false;
             public string[] answers;
             public Question[] results;
-            public int npcs;
-            public int newNpcs;
+            public int imps;
+            public int crews;
+            public bool task = false;
 
             public Question(string question, string[] answers) 
             {
@@ -71,42 +77,195 @@ namespace Sussy_impostor_text_adventure
                 this.results = results;
             }
 
-            public int askQuestion()
+            public int askQuestion(string extras)
             {
-                return questionLoop(this.question, this.answers);
+                return questionLoop(this.question, extras, this.answers);
             }
 
 
-            public void answerToQuestion()
+            public void answerToQuestion(Room[] rooms, Question[] specials, Room[] adminRooms, Room[] halls, int playerRole, int points)
             {
-                this.results[askQuestion()].answerToQuestion();
+
+                string extras = "";
+                   
+                if (this == specials[0]) 
+                {
+                    // show how many npcs are in each room
+                    extras += adminTable(adminRooms);
+                }
+
+                else if (this == specials[1])
+                {
+                    //show how many npcs there are in the hallways (excluding ele)
+                    extras += secCams(halls);
+                }
+
+                int input = askQuestion(extras);
+
+                var room = this;
+
+                if (input != -1)
+                {
+                    room = this.results[input];
+                }
+
+                else if (input == -2)
+                {
+                    if (playerRole == 1)
+                    {
+                        this.task = false;
+                        points += 1;
+
+                        // add getting killed if impostor in room
+                    }
+
+                    else if (playerRole == 0)
+                    {
+                        // add impostor kill code
+                    }
+                }
+
+                if (room.GetType() == typeof(Room))
+                {
+                    turn(rooms);
+
+                }
+
+                if (this.GetType() == typeof(Room))
+                {
+                    if (playerRole == 0)
+                    {
+                        if (room.crews == 1)
+                        {
+                            extras += "\nThere is a crewmate the room with you...";
+                        }
+
+                        else if (room.crews > 1)
+                        {
+                            extras += $"\nThere are {room.crews + room.imps} crewmates in the room with you...";
+                        }
+
+                        if (room.imps == 1)
+                        {
+                            extras += "\nThere is an impostor the room with you...";
+                        }
+
+                        else if (room.imps > 1)
+                        {
+                            extras += $"\nThere are {room.crews + room.imps} impostors in the room with you...";
+                        }
+                    }
+
+                    else if (playerRole == 1)
+                    {
+                        if (room.crews + room.imps == 1)
+                        {
+                            extras += "There is someone else in the room with you...";
+                        }
+
+                        else if (room.crews + room.imps > 1)
+                        {
+                            extras += $"There are {room.crews + room.imps} people in the room with you...";
+                        }
+                    }
+                }
+
+                room.answerToQuestion(rooms, specials, adminRooms, halls, playerRole, points);
             }
+        }
+
+
+        public class Room : Question
+        {
+            public string name;
+            public int newImps;
+            public int newCrews;
+
+            public Room(string name, string question, string[] answers, Room[] rooms) : base(question, answers)
+            {
+                this.name = name;
+                rooms.Append(this);
+            }
+            
+            public void moveNPCs()
+            {
+                Random random = new Random();
+
+                // finding which questions npcs can go into
+                Room[] movableRooms = new Room[] { };
+
+                foreach (Question question in this.results) 
+                { 
+                    if (question is Room)
+                    {
+                        movableRooms.Append(question);
+                    }
+                }
+
+                // setting crews
+                for (int c = 0; c < this.crews; c++)
+                {
+
+                    int num = random.Next(0, movableRooms.Length);
+
+                    movableRooms[num].newCrews += 1;
+
+                }
+
+                for (int i = 0; i < this.imps; i++)
+                {
+                    int num = random.Next(0, movableRooms.Length);
+
+                    movableRooms[num].newImps += 1;
+                }
+            }
+
+            public void setNPCs()
+            {
+                this.crews = newCrews;
+                this.imps = newImps;
+
+                this.newCrews = 0;
+                this.newImps = 0;
+            }
+
         }
 
         static void Main(string[] args)
         {
+
+            // An array for all of the rooms, so that the npcs 
+            Room[] rooms = new Room[] { };
+
+            // points counter, either task for crew or kills for imp
+            int points = 0;
+
             // Making all of the rooms a player can be
 
-            Question cafe = new Question("The cafeteria, where the crewmates go to eat and meetings are held. Would you like to go to Weapons, the admin hallway or medbay hallway?", new string[] { "w", "a", "m" });
-            Question adminHall = new Question("The admin hall connects the cafeteria, admin room and the storage room, where would you like to go?", new string[] { "c", "a", "s" });
-            Question medHall = new Question("The medbay hall connects the medbay, cafeteria and upper engine, where would you like to go?", new string[] { "c", "m", "e" });
-            Question reacHall = new Question("The reactor hallway connects the upper and lower engines, the reactor and the security room. Where would you like to go?", new string[] { "u", "l", "r", "c" });
-            Question navHall = new Question("The navigation hallway connects the oxygen, weapons, navigation and shields. Where would you like to go?", new string[] { "w", "o", "n", "s" });
-            Question commsHall = new Question("The comunications hallway connects the shields, comunications and storage room. Where would you like to go?", new string[] { "c", "st", "sh" });
-            Question elecHall = new Question("The elecrtical hall connects the lower engine, electrical and storage rooms. Where would you like to go?", new string[] { "e", "s", "l" });
-            Question weapons = new Question("A seat sits in the middle of the room, on its armrests are control sticks to move the laser outside the ship. You can go to either the cafeteria or the navigation hall from here.", new string[] { "c", "n" });
-            Question oxygen = new Question("The oxygen room circulates and filters the oxygen for the entire ship. From here you can go back into the navigation hall.", new string[] { "h" });
-            Question nav = new Question("The navigation room controls where the ship is going, you can go back into the hallway from here.", new string[] { "h" });
-            Question shields = new Question("The shields room protects the ship from outside dangers, you can either go into the communications hallway or the navigation hallway.", new string[] { "c", "n" });
-            Question comms = new Question("You forgot why you came in here... You can go back into the hall.", new string[] { "h" });
-            Question storage = new Question("This room stores important cargo from the ship and connects multiple hallways. You can either go into the electrical hallway, the communications hallway or the admin hallway.", new string[] { "c", "a", "e" });
-            Question admin = new Question("The admin room is where the crewmates unsuccessfully swipe their cards and also shows the number of crewmates in each room. You can look at the table or go back into the hallway.", new string[] { "h", "t" });
-            Question elec = new Question("Electrical... spooky. The only way you can go is back into the hallway.", new string[] { "h" });
-            Question lowerE = new Question("The lower of the two engines, it connects the electrical hallway to the reactor hallway.", new string[] { "e", "r" });
-            Question upperE = new Question("The upper engine, it connects the reactor hallway to the medbay hallway.", new string[] { "m", "r" });
-            Question sec = new Question("Security, where you are able to spy on everybody.... wherever there is a camera. You can look at the cameras or go back into the hallway.", new string[] { "h", "s" });
-            Question reac = new Question("Reactor - the powerhouse of the ce- ship, I meant ship. You can go back into the hallway from here.", new string[] { "h" });
-            Question med = new Question("The medbay, where hurt crewmates are housed and nursed back to health. You can go into the hallway from here.", new string[] { "h" });
+            Room cafe = new Room("cafeteria", "The cafeteria, where the crewmates go to eat and meetings are held. Would you like to go to Weapons, the admin hallway or medbay hallway?", new string[] { "w", "a", "m" }, rooms);
+            Room adminHall = new Room("admin hall", "The admin hall connects the cafeteria, admin room and the storage room, where would you like to go?", new string[] { "c", "a", "s" }, rooms);
+            Room medHall = new Room("medbay hall", "The medbay hall connects the medbay, cafeteria and upper engine, where would you like to go?", new string[] { "c", "m", "e" }, rooms);
+            Room reacHall = new Room("reactor hall", "The reactor hallway connects the upper and lower engines, the reactor and the security room. Where would you like to go?", new string[] { "u", "l", "r", "c" }, rooms);
+            Room navHall = new Room("navigation hall", "The navigation hallway connects the oxygen, weapons, navigation and shields. Where would you like to go?", new string[] { "w", "o", "n", "s" }, rooms);
+            Room commsHall = new Room("communications hall", "The comunications hallway connects the shields, comunications and storage room. Where would you like to go?", new string[] { "c", "st", "sh" }, rooms);
+            Room elecHall = new Room("electric hall", "The elecrtical hall connects the lower engine, electrical and storage rooms. Where would you like to go?", new string[] { "e", "s", "l" }, rooms);
+            Room weapons = new Room("weapons", "A seat sits in the middle of the room, on its armrests are control sticks to move the laser outside the ship. You can go to either the cafeteria or the navigation hall from here.", new string[] { "c", "n" }, rooms);
+            Room oxygen = new Room("oxygen", "The oxygen room circulates and filters the oxygen for the entire ship. From here you can go back into the navigation hall.", new string[] { "h" }, rooms);
+            Room nav = new Room("navigations", "The navigation room controls where the ship is going, you can go back into the hallway from here.", new string[] { "h" }, rooms);
+            Room shields = new Room("shields", "The shields room protects the ship from outside dangers, you can either go into the communications hallway or the navigation hallway.", new string[] { "c", "n" }, rooms);
+            Room comms = new Room("communications", "You forgot why you came in here... You can go back into the hall.", new string[] { "h" }, rooms);
+            Room storage = new Room("storage", "This room stores important cargo from the ship and connects multiple hallways. You can either go into the electrical hallway, the communications hallway or the admin hallway.", new string[] { "c", "a", "e" }, rooms);
+            Room admin = new Room("admin", "The admin room is where the crewmates unsuccessfully swipe their cards and also shows the number of crewmates in each room. You can look at the table or go back into the hallway.", new string[] { "h", "t" }, rooms);
+            Room elec = new Room("electrical", "Electrical... spooky. The only way you can go is back into the hallway.", new string[] { "h" }, rooms);
+            Room lowerE = new Room("lower engine", "The lower of the two engines, it connects the electrical hallway to the reactor hallway.", new string[] { "e", "r" }, rooms);
+            Room upperE = new Room("upper engine", "The upper engine, it connects the reactor hallway to the medbay hallway.", new string[] { "m", "r" }, rooms);
+            Room sec = new Room("security", "Security, where you are able to spy on everybody.... wherever there is a camera. You can look at the cameras or go back into the hallway.", new string[] { "h", "s" }, rooms);
+            Room reac = new Room("reactor", "Reactor - the powerhouse of the ce- ship, I meant ship. You can go back into the hallway from here.", new string[] { "h" }, rooms);
+            Room med = new Room("medbay", "The medbay, where hurt crewmates are housed and nursed back to health. You can go into the hallway from here.", new string[] { "h" }, rooms);
+
+            // Special
+            Question adminT = new Question("You check the admin table...", new string[] {"l"});
+            Question secC = new Question("You check the security cameras...", new string[] {"l"});
 
             cafe.setNewResults(new Question[] {weapons, adminHall, medHall});
             adminHall.setNewResults(new Question[] {cafe, admin, storage}); // add admin function
@@ -121,53 +280,75 @@ namespace Sussy_impostor_text_adventure
             shields.setNewResults(new Question[] {commsHall, navHall});
             comms.setNewResults(new Question[] {commsHall});
             storage.setNewResults(new Question[] {commsHall, adminHall, elecHall});
-            admin.setNewResults(new Question[] {adminHall});
+            admin.setNewResults(new Question[] {adminHall, adminT});
             elec.setNewResults(new Question[] {elecHall});
             lowerE.setNewResults(new Question[] {elecHall, reacHall});
             upperE.setNewResults(new Question[] {medHall, reacHall});
-            sec.setNewResults(new Question[] {reacHall}); // add security function
+            sec.setNewResults(new Question[] {reacHall, secC}); // add security function
             reac.setNewResults(new Question[] {reacHall});
             med.setNewResults(new Question[] {medHall});
+            adminT.setNewResults(new Question[] {admin});
+            secC.setNewResults(new Question[] {sec});
 
             // Text adventure where you are either a crewmate or an impostor
             // youll get a summary at the end to show how many people you killed or tasks you completed
-            Console.WriteLine("Welcome to the Among Us Text Game!");
+            printLine("Welcome to the Among Us Text Game!", 10);
 
-            int playerRole = questionLoop("Would you like to be an impostor or a crewmate?", new string[] { "i", "c"}); // 0 is impostor 1 is crewmate
+            int playerRole = questionLoop("Would you like to be an impostor or a crewmate?", "", new string[] { "i", "c"}); // 0 is impostor 1 is crewmate
 
-            if (playerRole == 0)
+            bool done = false;
+
+            while (!done)
             {
-                bool done = false;
+                print("How many crewmates would you like to be on the ship with you? : ", 10);
 
-                while (!done)
+                string crews = Console.ReadLine();
+
+                Console.Clear();
+
+                try
                 {
-                    Console.Write("How many crewmates would you like to be on the ship with you? : ");
-
-                    string crews = Console.ReadLine();
-
-                    Console.Clear();
-
-                    try
-                    {
-                        int crewNum = int.Parse(crews);
-                        assignCrews(crewNum, new Question[] { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE});
-                        done = true;
-                    }
+                    int crewNum = int.Parse(crews);
+                    assignCrews(crewNum, new Room[] { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE});
+                    done = true;
+                }
                     
-                    catch (Exception)
-                    {
-                        Console.WriteLine("You did not input a number, please try again.");
-                    }
+                catch (Exception)
+                {
+                    printLine("You did not input a number, please try again.", 10);
                 }
             }
 
-            else if (playerRole == 1)
+            done = false;
+
+            while (!done)
             {
-                bool done = false;
+                print("How many impostors would you like to be on the ship with you? : ", 10);
+
+                string impss = Console.ReadLine();
+
+                Console.Clear();
+
+                try
+                {
+                    int impNum = int.Parse(impss);
+                    assignImps(impNum, new Room[] { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE });
+                    done = true;
+                }
+
+                catch (Exception)
+                {
+                    printLine("You did not input a number, please try again.", 10);
+                }
+            }
+
+            if (playerRole == 1)
+            {
+                done = false;
 
                 while (!done)
                 {
-                    Console.Write("How many tasks would you like there to be? (Max of ): ");
+                    print("How many tasks would you like there to be? (Max of 14) : ", 10);
 
                     string tasks = Console.ReadLine();
 
@@ -176,25 +357,35 @@ namespace Sussy_impostor_text_adventure
                     try
                     {
                         int taskNum = int.Parse(tasks);
-                        assignTasks(taskNum, new Question[] {cafe, reacHall, adminHall, elec, navHall, storage, reac, admin, nav, reac, med, weapons, upperE, lowerE}, upperE, lowerE);
+
+                        if (taskNum > 14)
+                        {
+                            throw new Exception();
+                        }
+
+                        assignTasks(taskNum, new Room[] {cafe, reacHall, adminHall, elec, navHall, storage, reac, admin, nav, reac, med, weapons, upperE, lowerE}, upperE, lowerE);
                         done = true;
                     }
 
                     catch (Exception)
                     {
-                        Console.WriteLine("You did not input a number, please try again.");
+                        printLine("You did not input a number or a number under 15, please try again.", 10);
                     }
                 }
             }
 
+            Room[] adminRooms = { cafe, admin, storage, comms, shields, nav, oxygen, weapons, med, upperE, lowerE, reac, sec, elec };
+            Room[] halls = { adminHall, medHall, reacHall };
 
+            cafe.answerToQuestion(rooms, new Question[] { adminT, secC }, adminRooms, halls, playerRole, points);
 
         }
-        public static void assignTasks(int taskNum, Question[] questionArray, Question upperE, Question lowerE) //Assigns tasks to rooms based on a number
+
+        public static void assignTasks(int taskNum, Room[] questionArray, Room upperE, Room lowerE) //Assigns tasks to rooms based on a number
         {
             Random random = new Random();
 
-            Question[] newArray = questionArray;
+            Room[] newArray = questionArray;
 
             for (int num = 0; num <= taskNum; num++)
             {
@@ -210,7 +401,7 @@ namespace Sussy_impostor_text_adventure
                     int upperENum = Array.IndexOf(questionArray, upperE);
                     int lowerENum = Array.IndexOf(questionArray, lowerE);
 
-                    newArray = new Question[] { };
+                    newArray = new Room[] { };
 
                     for (int arrayNum = 0; num <= questionArray.Length; arrayNum++)
                     {
@@ -224,7 +415,7 @@ namespace Sussy_impostor_text_adventure
                 {
                     newArray[randNum].task = true;
 
-                    newArray = new Question[] { };
+                    newArray = new Room[] { };
 
                     for (int arrayNum = 0; num <= questionArray.Length; arrayNum++)
                     {
@@ -234,12 +425,10 @@ namespace Sussy_impostor_text_adventure
                         }
                     }
                 }
-
             }
-
         }
 
-        public static void assignCrews(int crewNum, Question[] questionArray) //Assigns tasks to rooms based on a number
+        public static void assignCrews(int crewNum, Room[] questionArray) //Assigns tasks to rooms based on a number
         {
             Random random = new Random();
 
@@ -247,12 +436,78 @@ namespace Sussy_impostor_text_adventure
             {
                 int randNum = random.Next(0, questionArray.Length);
 
-                questionArray[randNum].npcs += 1;
-
-                questionArray = new Question[] { };
+                questionArray[randNum].crews += 1;
 
             }
         }
-        
+
+        public static void assignImps(int impNum, Room[] questionArray) //Assigns tasks to rooms based on a number
+        {
+            Random random = new Random();
+
+            for (int num = 0; num <= impNum; num++)
+            {
+                int randNum = random.Next(0, questionArray.Length);
+
+                questionArray[randNum].imps += 1;
+
+            }
+        }
+
+        // everytime someone does something, a turn is made
+        public static void turn(Room[] rooms)
+        {
+            foreach (Room room in rooms)
+            {
+                room.moveNPCs();
+                room.setNPCs();
+            }
+        }
+
+        // prints all of the npcs in all rooms
+        public static string adminTable(Room[] adminRooms)
+        {
+            string message = "";
+
+            foreach (Room room in adminRooms)
+            {
+                message += $"\nThere are {room.crews + room.imps} people in {room.name}.";
+            }
+
+            return message;
+        }
+
+        // prints all of the npcs in all hallways (except elec)
+        public static string secCams(Room[] halls)
+        {
+            string message = "";
+
+            foreach (Room room in halls)
+            {
+                message += $"\nThere are {room.crews + room.imps} people in {room.name}.";
+            }
+
+            return message;
+        }
+
+        // code by zoe - prints things like someone is typing
+        public static void print(string text, int speed)
+        {
+            foreach (char t in text)
+            {
+                Console.Write(t);
+                Thread.Sleep(speed);
+            }
+        }
+        public static void printLine(string text, int speed)
+        {
+            foreach (char t in text)
+            {
+                Console.Write(t);
+                Thread.Sleep(speed);
+            }
+
+            Console.Write('\n');
+        }
     }
 }
