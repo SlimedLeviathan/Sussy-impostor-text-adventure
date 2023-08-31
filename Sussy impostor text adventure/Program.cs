@@ -64,7 +64,7 @@ namespace Sussy_impostor_text_adventure
             public Question[] results;
             public int imps;
             public int crews;
-            public bool task = false;
+            public int task = 0;
 
             public Question(string question, string[] answers) 
             {
@@ -113,7 +113,8 @@ namespace Sussy_impostor_text_adventure
                 {
                     if (playerRole == 1)
                     {
-                        this.task = false;
+
+                        this.task -= 1;
                         points += 1;
 
                         // add getting killed if impostor in room
@@ -237,9 +238,6 @@ namespace Sussy_impostor_text_adventure
             // An array for all of the rooms, so that the npcs 
             Room[] rooms = new Room[] { };
 
-            // points counter, either task for crew or kills for imp
-            int points = 0;
-
             // Making all of the rooms a player can be
 
             Room cafe = new Room("cafeteria", "The cafeteria, where the crewmates go to eat and meetings are held. Would you like to go to Weapons, the admin hallway or medbay hallway?", new string[] { "w", "a", "m" }, rooms);
@@ -264,31 +262,46 @@ namespace Sussy_impostor_text_adventure
             Room med = new Room("medbay", "The medbay, where hurt crewmates are housed and nursed back to health. You can go into the hallway from here.", new string[] { "h" }, rooms);
 
             // Special
-            Question adminT = new Question("You check the admin table...", new string[] {"l"});
-            Question secC = new Question("You check the security cameras...", new string[] {"l"});
+            Question adminT = new Question("You check the admin table...", new string[] { "l" });
+            Question secC = new Question("You check the security cameras...", new string[] { "l" });
 
-            cafe.setNewResults(new Question[] {weapons, adminHall, medHall});
-            adminHall.setNewResults(new Question[] {cafe, admin, storage}); // add admin function
-            medHall.setNewResults(new Question[] {cafe, med});
-            reacHall.setNewResults(new Question[] {upperE, lowerE, reac, sec});
-            navHall.setNewResults(new Question[] {weapons, oxygen, nav, shields});
-            commsHall.setNewResults(new Question[] {comms, storage, shields});
-            elecHall.setNewResults(new Question[] {elec, storage, lowerE});
-            weapons.setNewResults(new Question[] {cafe, navHall});
-            oxygen.setNewResults(new Question[] {navHall});
-            nav.setNewResults(new Question[] {navHall});
-            shields.setNewResults(new Question[] {commsHall, navHall});
-            comms.setNewResults(new Question[] {commsHall});
-            storage.setNewResults(new Question[] {commsHall, adminHall, elecHall});
-            admin.setNewResults(new Question[] {adminHall, adminT});
-            elec.setNewResults(new Question[] {elecHall});
-            lowerE.setNewResults(new Question[] {elecHall, reacHall});
-            upperE.setNewResults(new Question[] {medHall, reacHall});
-            sec.setNewResults(new Question[] {reacHall, secC}); // add security function
-            reac.setNewResults(new Question[] {reacHall});
-            med.setNewResults(new Question[] {medHall});
-            adminT.setNewResults(new Question[] {admin});
-            secC.setNewResults(new Question[] {sec});
+            cafe.setNewResults(new Question[] { weapons, adminHall, medHall });
+            adminHall.setNewResults(new Question[] { cafe, admin, storage }); // add admin function
+            medHall.setNewResults(new Question[] { cafe, med });
+            reacHall.setNewResults(new Question[] { upperE, lowerE, reac, sec });
+            navHall.setNewResults(new Question[] { weapons, oxygen, nav, shields });
+            commsHall.setNewResults(new Question[] { comms, storage, shields });
+            elecHall.setNewResults(new Question[] { elec, storage, lowerE });
+            weapons.setNewResults(new Question[] { cafe, navHall });
+            oxygen.setNewResults(new Question[] { navHall });
+            nav.setNewResults(new Question[] { navHall });
+            shields.setNewResults(new Question[] { commsHall, navHall });
+            comms.setNewResults(new Question[] { commsHall });
+            storage.setNewResults(new Question[] { commsHall, adminHall, elecHall });
+            admin.setNewResults(new Question[] { adminHall, adminT });
+            elec.setNewResults(new Question[] { elecHall });
+            lowerE.setNewResults(new Question[] { elecHall, reacHall });
+            upperE.setNewResults(new Question[] { medHall, reacHall });
+            sec.setNewResults(new Question[] { reacHall, secC }); // add security function
+            reac.setNewResults(new Question[] { reacHall });
+            med.setNewResults(new Question[] { medHall });
+            adminT.setNewResults(new Question[] { admin });
+            secC.setNewResults(new Question[] { sec });
+
+            Room[] npcSpawn = { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE };
+            Room[] taskRooms = new Room[] { cafe, reacHall, adminHall, elec, navHall, storage, reac, admin, nav, reac, med, weapons, upperE, lowerE };
+
+            Question[] specials = { adminT, secC };
+            Room[] adminRooms = { cafe, admin, storage, comms, shields, nav, oxygen, weapons, med, upperE, lowerE, reac, sec, elec };
+            Room[] halls = { adminHall, medHall, reacHall };
+
+            startGame(cafe, npcSpawn, taskRooms, rooms, specials, adminRooms, halls);
+        }
+
+        public static void startGame(Room startRoom, Room[] npcSpawn, Room[] taskRooms, Room[] rooms, Question[] specials, Room[] adminRooms, Room[] halls)
+        {
+            // points counter, either task for crew or kills for imp
+            int points = 0;
 
             // Text adventure where you are either a crewmate or an impostor
             // youll get a summary at the end to show how many people you killed or tasks you completed
@@ -309,7 +322,7 @@ namespace Sussy_impostor_text_adventure
                 try
                 {
                     int crewNum = int.Parse(crews);
-                    assignCrews(crewNum, new Room[] { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE});
+                    assignCrews(crewNum, npcSpawn);
                     done = true;
                 }
                     
@@ -332,7 +345,7 @@ namespace Sussy_impostor_text_adventure
                 try
                 {
                     int impNum = int.Parse(impss);
-                    assignImps(impNum, new Room[] { cafe, elec, weapons, reac, sec, med, shields, admin, nav, oxygen, storage, upperE, lowerE });
+                    assignImps(impNum, npcSpawn);
                     done = true;
                 }
 
@@ -348,7 +361,7 @@ namespace Sussy_impostor_text_adventure
 
                 while (!done)
                 {
-                    print("How many tasks would you like there to be? (Max of 14) : ", 10);
+                    print("How many tasks would you like there to be? : ", 10);
 
                     string tasks = Console.ReadLine();
 
@@ -363,7 +376,7 @@ namespace Sussy_impostor_text_adventure
                             throw new Exception();
                         }
 
-                        assignTasks(taskNum, new Room[] {cafe, reacHall, adminHall, elec, navHall, storage, reac, admin, nav, reac, med, weapons, upperE, lowerE}, upperE, lowerE);
+                        assignTasks(taskNum, taskRooms, taskRooms[-2], taskRooms[-1]);
                         done = true;
                     }
 
@@ -374,11 +387,27 @@ namespace Sussy_impostor_text_adventure
                 }
             }
 
-            Room[] adminRooms = { cafe, admin, storage, comms, shields, nav, oxygen, weapons, med, upperE, lowerE, reac, sec, elec };
-            Room[] halls = { adminHall, medHall, reacHall };
+            // This one line of code uses all of the objects to go through the game
+            // it stops when the player gets killed or have no crewmates to kill or tasks to do, which stops the next room from getting ran, stopping all the codes that its in and comes back to this to go to the end code
+            startRoom.answerToQuestion(rooms, specials, adminRooms, halls, playerRole, points);
 
-            cafe.answerToQuestion(rooms, new Question[] { adminT, secC }, adminRooms, halls, playerRole, points);
 
+
+        }
+
+        public static void endGame(Room startRoom, Room[] npcSpawn, Room[] taskRooms, Room[] rooms, Question[] specials, Room[] adminRooms, Room[] halls, int playerRole, int points)
+        {
+            if (playerRole == 1)
+            {
+                printLine($"As a crewmate, you completed {points} tasks!", 10);
+            }
+
+            else if (playerRole == 0)
+            {
+                printLine($"As an impostor, you killed {points} crewmates!", 10);
+            }
+
+            startGame(startRoom, npcSpawn, taskRooms, rooms, specials, adminRooms, halls);
         }
 
         public static void assignTasks(int taskNum, Room[] questionArray, Room upperE, Room lowerE) //Assigns tasks to rooms based on a number
@@ -394,8 +423,8 @@ namespace Sussy_impostor_text_adventure
 
                 if ((newArray[randNum] == upperE | newArray[randNum] == lowerE) & num <= taskNum - 2)
                 {
-                    upperE.task = true;
-                    lowerE.task = true;
+                    upperE.task += 1;
+                    lowerE.task += 1;
                     num++;
 
                     int upperENum = Array.IndexOf(questionArray, upperE);
@@ -413,7 +442,7 @@ namespace Sussy_impostor_text_adventure
                 }
                 else
                 {
-                    newArray[randNum].task = true;
+                    newArray[randNum].task += 1;
 
                     newArray = new Room[] { };
 
