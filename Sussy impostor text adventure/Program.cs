@@ -38,19 +38,31 @@ namespace Sussy_impostor_text_adventure
 
                 for (int num = 0; num < answers.Length; num++)
                 {
-                    if (answers[num] == input)
+                    if (input == "help")
+                    {
+                        tutorial();
+                    }
+
+                    else if (input == "wait")
+                    {
+                        done = true;
+                        endNum = -1;
+                    }
+
+                    else if (input == "interact")
+                    {
+                        done = true;
+                        endNum = -2;
+                    }
+
+                    else if (input == answers[num])
                     {
                         done = true;
                         endNum = num;
                     }
                 }
 
-                if (input == "w")
-                {
-                    done = true;
-                }
-
-                if (!done)
+                if (!done & input != "help")
                 {
                     printLine("Your input was not able to be detected, please try again.", 1);
                 }
@@ -64,7 +76,7 @@ namespace Sussy_impostor_text_adventure
             public Question[] results;
             public int imps;
             public int crews;
-            public int task = 0;
+            public int tasks = 0;
 
             public Question(string question, string[] answers) 
             {
@@ -77,9 +89,24 @@ namespace Sussy_impostor_text_adventure
                 this.results = results;
             }
 
-            public int askQuestion(string extras)
+            public int askQuestion(string extras, int playerRole)
             {
-                return questionLoop(this.question, extras, this.answers);
+                string[] answers = this.answers;
+
+                answers.Append("wait");
+
+                if (this.tasks > 0 & playerRole == 1)
+                {
+                    extras += $"\nThere are {this.tasks} tasks left to be done in this room.";
+                    answers.Append("interact");
+                }
+
+                if (this.crews > 0 & playerRole == 0)
+                {
+                    answers.Append("interact");
+                }
+
+                return questionLoop(this.question, extras, answers);
             }
 
 
@@ -100,13 +127,55 @@ namespace Sussy_impostor_text_adventure
                     extras += secCams(halls);
                 }
 
-                int input = askQuestion(extras);
-
-                var room = this;
-
-                if (input != -1)
+                if (playerRole == 0)
                 {
-                    room = this.results[input];
+                    if (this.crews == 1)
+                    {
+                        extras += "\nThere is a crewmate the room with you...";
+                    }
+
+                    else if (this.crews > 1)
+                    {
+                        extras += $"\nThere are {this.crews + this.imps} crewmates in the room with you...";
+                    }
+
+                    if (this.imps == 1)
+                    {
+                        extras += "\nThere is an impostor the room with you...";
+                    }
+
+                    else if (this.imps > 1)
+                    {
+                        extras += $"\nThere are {this.crews + this.imps} impostors in the room with you...";
+                    }
+                }
+
+                else if (playerRole == 1)
+                {
+                    if (this.crews + this.imps == 1)
+                    {
+                        extras += "There is someone else in the room with you...";
+                    }
+
+                    else if (this.crews + this.imps > 1)
+                    {
+                        extras += $"There are {this.crews + this.imps} people in the room with you...";
+                    }
+                }
+
+                int input = askQuestion(extras, playerRole);
+
+                bool dead = false;
+
+                if (input != -1) // waiting
+                {
+
+                    if (this.crews + 1 < this.imps)
+                    {
+                        printLine("The impostors were able to kill all the crewmates in the room in one swift motion...", 10);
+
+                        dead = true;
+                    }
                 }
 
                 else if (input == -2)
@@ -114,64 +183,77 @@ namespace Sussy_impostor_text_adventure
                     if (playerRole == 1)
                     {
 
-                        this.task -= 1;
-                        points += 1;
+                        if (this.crews + 1 >= this.imps)
+                        {
+                            printLine("You successfully completed one task!", 8);
 
-                        // add getting killed if impostor in room
+                            points += 1;
+                            this.tasks -= 1;
+                        }
+
+                        if (this.crews + 1 < this.imps)
+                        {
+                            printLine("The impostors were able to kill all the crewmates in the room in one swift motion...", 10);
+
+                            dead = true;
+                        }
                     }
 
                     else if (playerRole == 0)
                     {
-                        // add impostor kill code
+                        if (this.imps + 1 >= this.crews)
+                        {
+                            if (this.imps != 0)
+                            {
+                                printLine("You and the other impostors in the room killed all the crewmates in the room simultaneously!", 10);
+                            }
+
+                            else
+                            {
+                                printLine("You killed the lone crewmate.", 12);
+                            }
+
+                            points += 1;
+                            this.crews = 0;
+                        }
+
+                        if (this.imps + 1 < this.crews)
+                        {
+                            printLine("There weren't enough impostors in the room to kill all of the crewmates, and you were caught...", 10);
+
+                            dead = true;
+                        }
                     }
                 }
+
+                var room = this.results[input];
 
                 if (room.GetType() == typeof(Room))
                 {
                     turn(rooms);
-
                 }
 
-                if (this.GetType() == typeof(Room))
+                if (checkAllRooms(rooms, playerRole))
                 {
                     if (playerRole == 0)
                     {
-                        if (room.crews == 1)
-                        {
-                            extras += "\nThere is a crewmate the room with you...";
-                        }
-
-                        else if (room.crews > 1)
-                        {
-                            extras += $"\nThere are {room.crews + room.imps} crewmates in the room with you...";
-                        }
-
-                        if (room.imps == 1)
-                        {
-                            extras += "\nThere is an impostor the room with you...";
-                        }
-
-                        else if (room.imps > 1)
-                        {
-                            extras += $"\nThere are {room.crews + room.imps} impostors in the room with you...";
-                        }
+                        printLine("All of the crewmates have been killed!", 10);
                     }
 
-                    else if (playerRole == 1)
+                    else if (playerRole == 0)
                     {
-                        if (room.crews + room.imps == 1)
-                        {
-                            extras += "There is someone else in the room with you...";
-                        }
-
-                        else if (room.crews + room.imps > 1)
-                        {
-                            extras += $"There are {room.crews + room.imps} people in the room with you...";
-                        }
+                        printLine("All of your tasks have been completed!", 10);
                     }
+
+                    dead = true;
                 }
 
-                room.answerToQuestion(rooms, specials, adminRooms, halls, playerRole, points);
+                // if they are dead, they will go back to the end of start game and then into the endgame function
+                if (!dead)
+                {
+                    room.answerToQuestion(rooms, specials, adminRooms, halls, playerRole, points);
+                }
+
             }
         }
 
@@ -203,21 +285,42 @@ namespace Sussy_impostor_text_adventure
                     }
                 }
 
+                // auto impostor kill
+                if (this.imps > this.crews)
+                {
+                    this.crews = 0;
+                }
+
                 // setting crews
                 for (int c = 0; c < this.crews; c++)
                 {
 
-                    int num = random.Next(0, movableRooms.Length);
+                    int num = random.Next(0, movableRooms.Length + 1);
 
-                    movableRooms[num].newCrews += 1;
+                    if (num == 0)
+                    {
+                        this.newCrews += 1;
+                    }
+
+                    else
+                    {
+                        movableRooms[num - 1].newCrews += 1;
+                    }
 
                 }
 
                 for (int i = 0; i < this.imps; i++)
                 {
-                    int num = random.Next(0, movableRooms.Length);
+                    int num = random.Next(0, movableRooms.Length + 1);
 
-                    movableRooms[num].newImps += 1;
+                    if (num == 0)
+                    {
+                        this.newImps += 1;
+                    }
+                    else
+                    {
+                        movableRooms[num - 1].newImps += 1;
+                    }
                 }
             }
 
@@ -295,6 +398,11 @@ namespace Sussy_impostor_text_adventure
             Room[] adminRooms = { cafe, admin, storage, comms, shields, nav, oxygen, weapons, med, upperE, lowerE, reac, sec, elec };
             Room[] halls = { adminHall, medHall, reacHall };
 
+            // tutorial
+
+            printLine("Welcome to the Among Us Text Game!\n", 10);
+            tutorial();
+
             startGame(cafe, npcSpawn, taskRooms, rooms, specials, adminRooms, halls);
         }
 
@@ -302,10 +410,6 @@ namespace Sussy_impostor_text_adventure
         {
             // points counter, either task for crew or kills for imp
             int points = 0;
-
-            // Text adventure where you are either a crewmate or an impostor
-            // youll get a summary at the end to show how many people you killed or tasks you completed
-            printLine("Welcome to the Among Us Text Game!", 10);
 
             int playerRole = questionLoop("Would you like to be an impostor or a crewmate?", "", new string[] { "i", "c"}); // 0 is impostor 1 is crewmate
 
@@ -367,22 +471,19 @@ namespace Sussy_impostor_text_adventure
 
                     Console.Clear();
 
-                    try
-                    {
                         int taskNum = int.Parse(tasks);
 
-                        if (taskNum > 14)
-                        {
-                            throw new Exception();
-                        }
+                        int length = taskRooms.Length;
 
-                        assignTasks(taskNum, taskRooms, taskRooms[-2], taskRooms[-1]);
+                        assignTasks(taskNum, taskRooms, taskRooms[length - 2], taskRooms[length - 1]);
                         done = true;
+                    try
+                    {
                     }
 
                     catch (Exception)
                     {
-                        printLine("You did not input a number or a number under 15, please try again.", 10);
+                        printLine("You did not input a number please try again.", 10);
                     }
                 }
             }
@@ -391,8 +492,8 @@ namespace Sussy_impostor_text_adventure
             // it stops when the player gets killed or have no crewmates to kill or tasks to do, which stops the next room from getting ran, stopping all the codes that its in and comes back to this to go to the end code
             startRoom.answerToQuestion(rooms, specials, adminRooms, halls, playerRole, points);
 
-
-
+            // ends the game if the player dies
+            endGame(startRoom, npcSpawn, taskRooms, rooms, specials, adminRooms, halls, playerRole, points);
         }
 
         public static void endGame(Room startRoom, Room[] npcSpawn, Room[] taskRooms, Room[] rooms, Question[] specials, Room[] adminRooms, Room[] halls, int playerRole, int points)
@@ -414,45 +515,22 @@ namespace Sussy_impostor_text_adventure
         {
             Random random = new Random();
 
-            Room[] newArray = questionArray;
-
             for (int num = 0; num <= taskNum; num++)
             {
-                int randNum = random.Next(0, newArray.Length);
+                int randNum = random.Next(0, questionArray.Length);
 
 
-                if ((newArray[randNum] == upperE | newArray[randNum] == lowerE) & num <= taskNum - 2)
+                if ((questionArray[randNum] == upperE | questionArray[randNum] == lowerE) & num <= taskNum - 2)
                 {
-                    upperE.task += 1;
-                    lowerE.task += 1;
+                    upperE.tasks += 1;
+                    lowerE.tasks += 1;
                     num++;
 
-                    int upperENum = Array.IndexOf(questionArray, upperE);
-                    int lowerENum = Array.IndexOf(questionArray, lowerE);
 
-                    newArray = new Room[] { };
-
-                    for (int arrayNum = 0; num <= questionArray.Length; arrayNum++)
-                    {
-                        if (arrayNum != upperENum & arrayNum != lowerENum)
-                        {
-                            newArray.Append(questionArray[arrayNum]);
-                        }
-                    }
                 }
                 else
                 {
-                    newArray[randNum].task += 1;
-
-                    newArray = new Room[] { };
-
-                    for (int arrayNum = 0; num <= questionArray.Length; arrayNum++)
-                    {
-                        if (arrayNum != randNum)
-                        {
-                            newArray.Append(questionArray[arrayNum]);
-                        }
-                    }
+                    questionArray[randNum].tasks += 1;
                 }
             }
         }
@@ -493,6 +571,36 @@ namespace Sussy_impostor_text_adventure
             }
         }
 
+        public static bool checkAllRooms(Room[] rooms, int playerRole)
+        {
+            bool status = false; // the status of the game, whether the player has completed everything or not
+
+            int totalGoals = 0;
+            
+            if (playerRole == 0)
+            {
+                foreach (Room room in rooms)
+                {
+                    totalGoals += room.crews;
+                }
+            }
+
+            else if (playerRole == 1)
+            {
+                foreach (Room room in rooms)
+                {
+                    totalGoals += room.tasks;
+                }
+            }
+
+            if (totalGoals == 0)
+            {
+                status = true;
+            }
+
+            return status;
+        }
+
         // prints all of the npcs in all rooms
         public static string adminTable(Room[] adminRooms)
         {
@@ -519,6 +627,22 @@ namespace Sussy_impostor_text_adventure
             return message;
         }
 
+        public static void tutorial()
+        {
+            int tutorialSpeed = 1;
+
+            printLine("Tutorial:\n", tutorialSpeed);
+            printLine("There are two roles you can be: a crewmate and an impostor.", tutorialSpeed);
+            printLine("As a crewmate, your goal is to complete as many tasks as possible without getting killed.", tutorialSpeed);
+            printLine("As an impostor, your goal is kill as many crewmates as possible without getting caught.", tutorialSpeed);
+            printLine("You are also competing with your fellow impostors, as they will kill crewmates when there are more impostors than crewmates in the room with them.", tutorialSpeed);
+            printLine("\nRules: ", tutorialSpeed);
+            printLine("When trying to complete a task or waiting in a room as a crewmate, if there are more impostors than crewmates in the room, then the impostors will be able to attack. Otherwise you will be able to do your task.", tutorialSpeed);
+            printLine("When trying to kill as an impostor, if there are more crewmates than impostors, the impostors will get caught. Otherwise all crewmates will get killed", tutorialSpeed);
+            printLine("You can use 'wait' to stay in the current room or 'interact' to attempt to kill or complete a task.\n", tutorialSpeed);
+
+        }
+
         // code by zoe - prints things like someone is typing
         public static void print(string text, int speed)
         {
@@ -530,13 +654,7 @@ namespace Sussy_impostor_text_adventure
         }
         public static void printLine(string text, int speed)
         {
-            foreach (char t in text)
-            {
-                Console.Write(t);
-                Thread.Sleep(speed);
-            }
-
-            Console.Write('\n');
+            print(text + '\n', speed);
         }
     }
 }
